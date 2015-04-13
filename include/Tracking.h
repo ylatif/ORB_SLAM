@@ -23,8 +23,6 @@
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
-#include<sensor_msgs/Image.h>
-#include<sensor_msgs/image_encodings.h>
 
 #include"FramePublisher.h"
 #include"Map.h"
@@ -36,9 +34,6 @@
 #include"ORBextractor.h"
 #include "Initializer.h"
 #include "MapPublisher.h"
-
-#include<tf/transform_broadcaster.h>
-
 
 namespace ORB_SLAM
 {
@@ -68,7 +63,7 @@ public:
     void SetKeyFrameDatabase(KeyFrameDatabase* pKFDB);
 
     // This is the main function of the Tracking Thread
-    void Run();
+    bool Run(cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec);
 
     void ForceRelocalisation();
 
@@ -90,8 +85,6 @@ public:
 
 
 protected:
-    void GrabImage(const sensor_msgs::ImageConstPtr& msg);
-
     void FirstInitialization();
     void Initialize();
     void CreateInitialMap(cv::Mat &Rcw, cv::Mat &tcw);
@@ -179,7 +172,7 @@ protected:
     bool mbRGB;
 
     // Transfor broadcaster (for visualization in rviz)
-    tf::TransformBroadcaster mTfBr;
+    //tf::TransformBroadcaster mTfBr;
 };
 
 } //namespace ORB_SLAM

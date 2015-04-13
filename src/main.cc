@@ -20,8 +20,6 @@
 
 #include<iostream>
 #include<fstream>
-#include<ros/ros.h>
-#include<ros/package.h>
 #include<boost/thread.hpp>
 
 #include<opencv2/core/core.hpp>

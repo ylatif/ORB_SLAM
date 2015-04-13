@@ -25,8 +25,6 @@
 #include "MapPoint.h"
 #include "Map.h"
 
-#include "ros/ros.h"
-
 #include<opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
 
@@ -49,9 +47,9 @@ public:
 
     void SetMap(Map* pMap);
 
-protected:
-
     cv::Mat DrawFrame();
+
+protected:
 
     void PublishFrame();
 
@@ -67,8 +65,8 @@ protected:
     vector<cv::KeyPoint> mvIniKeys;
     vector<int> mvIniMatches;
 
-    ros::NodeHandle mNH;
-    ros::Publisher mImagePub;
+    //ros::NodeHandle mNH;
+    //ros::Publisher mImagePub;
 
     int mState;
 

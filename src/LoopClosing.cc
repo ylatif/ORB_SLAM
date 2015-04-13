@@ -28,8 +28,6 @@
 
 #include "ORBmatcher.h"
 
-#include <ros/ros.h>
-
 #include "Thirdparty/g2o/g2o/types/sim3/types_seven_dof_expmap.h"
 
 namespace ORB_SLAM
@@ -56,9 +54,9 @@ void LoopClosing::SetLocalMapper(LocalMapping *pLocalMapper)
 void LoopClosing::Run()
 {
 
-    ros::Rate r(200);
+    //ros::Rate r(200);
 
-    while(ros::ok())
+    while(1)//ros::ok())
     {
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
@@ -76,7 +74,8 @@ void LoopClosing::Run()
         }
 
         ResetIfRequested();
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(5));
+
     }
 }
 
@@ -401,10 +400,10 @@ void LoopClosing::CorrectLoop()
     mpLocalMapper->RequestStop();
 
     // Wait until Local Mapping has effectively stopped
-    ros::Rate r(1e4);
-    while(ros::ok() && !mpLocalMapper->isStopped())
+    //ros::Rate r(1e4);
+    while(/*ros::ok() &&*/ !mpLocalMapper->isStopped())
     {
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(1));
     }
 
     // Ensure current keyframe is updated
@@ -544,7 +543,7 @@ void LoopClosing::CorrectLoop()
     mpMatchedKF->AddLoopEdge(mpCurrentKF);
     mpCurrentKF->AddLoopEdge(mpMatchedKF);
 
-    ROS_INFO("Loop Closed!");
+    printf("Loop Closed!\n");
 
     // Loop closed. Release Local Mapping.
     mpLocalMapper->Release();
@@ -577,15 +576,17 @@ void LoopClosing::RequestReset()
         mbResetRequested = true;
     }
 
-    ros::Rate r(500);
-    while(ros::ok())
+    //ros::Rate r(500);
+    while(1)//ros::ok())
     {
         {
         boost::mutex::scoped_lock lock2(mMutexReset);
         if(!mbResetRequested)
             break;
         }
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(2));
+
+        //r.sleep();
     }
 }
 

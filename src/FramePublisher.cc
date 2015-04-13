@@ -25,8 +25,6 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include<boost/thread.hpp>
-#include<ros/ros.h>
-#include <cv_bridge/cv_bridge.h>
 
 namespace ORB_SLAM
 {
@@ -37,7 +35,7 @@ FramePublisher::FramePublisher()
     mIm = cv::Mat(480,640,CV_8UC3, cv::Scalar(0,0,0));
     mbUpdated = true;
 
-    mImagePub = mNH.advertise<sensor_msgs::Image>("ORB_SLAM/Frame",10,true);
+    //mImagePub = mNH.advertise<sensor_msgs::Image>("ORB_SLAM/Frame",10,true);
 
     PublishFrame();
 }
@@ -142,14 +140,14 @@ cv::Mat FramePublisher::DrawFrame()
 
 void FramePublisher::PublishFrame()
 {
-    cv::Mat im = DrawFrame();
-    cv_bridge::CvImage rosImage;
-    rosImage.image = im.clone();
-    rosImage.header.stamp = ros::Time::now();
-    rosImage.encoding = "bgr8";
+    //cv::Mat im = DrawFrame();
+    //cv_bridge::CvImage rosImage;
+    //rosImage.image = im.clone();
+    //rosImage.header.stamp = ros::Time::now();
+    //rosImage.encoding = "bgr8";
 
-    mImagePub.publish(rosImage.toImageMsg());
-    ros::spinOnce();
+    //mImagePub.publish(rosImage.toImageMsg());
+    //ros::spinOnce();
 }
 
 void FramePublisher::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)

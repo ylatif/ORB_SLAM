@@ -23,8 +23,6 @@
 #include "ORBmatcher.h"
 #include "Optimizer.h"
 
-#include <ros/ros.h>
-
 namespace ORB_SLAM
 {
 
@@ -46,8 +44,8 @@ void LocalMapping::SetTracker(Tracking *pTracker)
 void LocalMapping::Run()
 {
 
-    ros::Rate r(500);
-    while(ros::ok())
+    //ros::Rate r(500);
+    while(1)//ros::ok())
     {
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
@@ -91,17 +89,17 @@ void LocalMapping::Run()
         if(stopRequested())
         {
             Stop();
-            ros::Rate r2(1000);
-            while(isStopped() && ros::ok())
+            //ros::Rate r2(1000);
+            while(isStopped())// && ros::ok())
             {
-                r2.sleep();
+                boost::this_thread::sleep(boost::posix_time::microseconds(1));
             }
 
             SetAcceptKeyFrames(true);
         }
 
         ResetIfRequested();
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(2));
     }
 }
 
@@ -591,15 +589,15 @@ void LocalMapping::RequestReset()
         mbResetRequested = true;
     }
 
-    ros::Rate r(500);
-    while(ros::ok())
+    //ros::Rate r(500);
+    while(1)//ros::ok())
     {
         {
         boost::mutex::scoped_lock lock2(mMutexReset);
         if(!mbResetRequested)
             break;
         }
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(2));
     }
 }
 

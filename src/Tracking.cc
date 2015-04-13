@@ -19,8 +19,6 @@
 */
 
 #include "Tracking.h"
-#include<ros/ros.h>
-#include <cv_bridge/cv_bridge.h>
 
 #include<opencv2/opencv.hpp>
 
@@ -137,9 +135,9 @@ Tracking::Tracking(ORBVocabulary* pVoc, FramePublisher *pFramePublisher, MapPubl
         cout << endl << "Motion Model: Disabled (not recommended, change settings UseMotionModel: 1)" << endl << endl;
 
 
-    tf::Transform tfT;
-    tfT.setIdentity();
-    mTfBr.sendTransform(tf::StampedTransform(tfT,ros::Time::now(), "/ORB_SLAM/World", "/ORB_SLAM/Camera"));
+    //tf::Transform tfT;
+    //tfT.setIdentity();
+    //mTfBr.sendTransform(tf::StampedTransform(tfT,ros::Time::now(), "/ORB_SLAM/World", "/ORB_SLAM/Camera"));
 }
 
 void Tracking::SetLocalMapper(LocalMapping *pLocalMapper)
@@ -157,49 +155,28 @@ void Tracking::SetKeyFrameDatabase(KeyFrameDatabase *pKFDB)
     mpKeyFrameDB = pKFDB;
 }
 
-void Tracking::Run()
+bool Tracking::Run(cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec)
 {
-    ros::NodeHandle nodeHandler;
-    ros::Subscriber sub = nodeHandler.subscribe("/camera/image_raw", 1, &Tracking::GrabImage, this);
-
-    ros::spin();
-}
-
-void Tracking::GrabImage(const sensor_msgs::ImageConstPtr& msg)
-{
-
     cv::Mat im;
 
-    // Copy the ros image message to cv::Mat. Convert to grayscale if it is a color image.
-    cv_bridge::CvImageConstPtr cv_ptr;
-    try
-    {
-        cv_ptr = cv_bridge::toCvShare(msg);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
+    CV_Assert(im_in.channels()==3 || im_in.channels()==1);
 
-    ROS_ASSERT(cv_ptr->image.channels()==3 || cv_ptr->image.channels()==1);
-
-    if(cv_ptr->image.channels()==3)
+    if(im_in.channels()==3)
     {
         if(mbRGB)
-            cvtColor(cv_ptr->image, im, CV_RGB2GRAY);
+            cvtColor(im_in, im, CV_RGB2GRAY);
         else
-            cvtColor(cv_ptr->image, im, CV_BGR2GRAY);
+            cvtColor(im_in, im, CV_BGR2GRAY);
     }
-    else if(cv_ptr->image.channels()==1)
+    else if(im_in.channels()==1)
     {
-        cv_ptr->image.copyTo(im);
+        im_in.copyTo(im);
     }
 
     if(mState==WORKING || mState==LOST)
-        mCurrentFrame = Frame(im,cv_ptr->header.stamp.toSec(),mpORBextractor,mpORBVocabulary,mK,mDistCoef);
+        mCurrentFrame = Frame(im,timestamp_sec,mpORBextractor,mpORBVocabulary,mK,mDistCoef);
     else
-        mCurrentFrame = Frame(im,cv_ptr->header.stamp.toSec(),mpIniORBextractor,mpORBVocabulary,mK,mDistCoef);
+        mCurrentFrame = Frame(im,timestamp_sec,mpIniORBextractor,mpORBVocabulary,mK,mDistCoef);
 
     // Depending on the state of the Tracker we perform different tasks
 
@@ -274,7 +251,7 @@ void Tracking::GrabImage(const sensor_msgs::ImageConstPtr& msg)
             if(mpMap->KeyFramesInMap()<=5)
             {
                 Reset();
-                return;
+                return false;
             }
         }
 
@@ -302,18 +279,10 @@ void Tracking::GrabImage(const sensor_msgs::ImageConstPtr& msg)
 
     if(!mCurrentFrame.mTcw.empty())
     {
-        cv::Mat Rwc = mCurrentFrame.mTcw.rowRange(0,3).colRange(0,3).t();
-        cv::Mat twc = -Rwc*mCurrentFrame.mTcw.rowRange(0,3).col(3);
-        tf::Matrix3x3 M(Rwc.at<float>(0,0),Rwc.at<float>(0,1),Rwc.at<float>(0,2),
-                        Rwc.at<float>(1,0),Rwc.at<float>(1,1),Rwc.at<float>(1,2),
-                        Rwc.at<float>(2,0),Rwc.at<float>(2,1),Rwc.at<float>(2,2));
-        tf::Vector3 V(twc.at<float>(0), twc.at<float>(1), twc.at<float>(2));
-
-        tf::Transform tfTcw(M,V);
-
-        mTfBr.sendTransform(tf::StampedTransform(tfTcw,ros::Time::now(), "ORB_SLAM/World", "ORB_SLAM/Camera"));
+        T_cw = mCurrentFrame.mTcw.clone();
+        return true;
     }
-
+    return false;
 }
 
 
@@ -431,7 +400,7 @@ void Tracking::CreateInitialMap(cv::Mat &Rcw, cv::Mat &tcw)
     pKFcur->UpdateConnections();
 
     // Bundle Adjustment
-    ROS_INFO("New Map created with %d points",mpMap->MapPointsInMap());
+    printf("New Map created with %d points\n",mpMap->MapPointsInMap());
 
     Optimizer::GlobalBundleAdjustemnt(mpMap,20);
 
@@ -441,7 +410,7 @@ void Tracking::CreateInitialMap(cv::Mat &Rcw, cv::Mat &tcw)
 
     if(medianDepth<0 || pKFcur->TrackedMapPoints()<100)
     {
-        ROS_INFO("Wrong initialization, reseting...");
+        printf("Wrong initialization, reseting...\n");
         Reset();
         return;
     }
@@ -1032,7 +1001,7 @@ void Tracking::Reset()
     }
 
     // Wait until publishers are stopped
-    ros::Rate r(500);
+    //ros::Rate r(500);
     while(1)
     {
         {
@@ -1040,7 +1009,8 @@ void Tracking::Reset()
             if(mbPublisherStopped)
                 break;
         }
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(2));
+        //r.sleep();
     }
 
     // Reset Local Mapping
@@ -1078,7 +1048,7 @@ void Tracking::CheckResetByPublishers()
     }
 
     // Hold until reset is finished
-    ros::Rate r(500);
+    //ros::Rate r(500);
     while(1)
     {
         {
@@ -1089,7 +1059,9 @@ void Tracking::CheckResetByPublishers()
                 break;
             }
         }
-        r.sleep();
+        boost::this_thread::sleep(boost::posix_time::microseconds(2));
+
+        //r.sleep();
     }
 }
 
