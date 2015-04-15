@@ -26,8 +26,8 @@
 namespace ORB_SLAM
 {
 
-LocalMapping::LocalMapping(Map *pMap):
-    mbResetRequested(false), mpMap(pMap),  mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbAcceptKeyFrames(true)
+LocalMapping::LocalMapping(Map *pMap, KeyFrameDatabase *pKeyFrameDB):
+    mbResetRequested(false), mpMap(pMap),  mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbAcceptKeyFrames(true), mpLoopCloser(NULL), mpKeyFrameDB(pKeyFrameDB)
 {
 }
 
@@ -82,7 +82,8 @@ void LocalMapping::Run()
                     SetAcceptKeyFrames(true);
             }
 
-            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            if(mpLoopCloser) mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            else mpKeyFrameDB->add(mpCurrentKeyFrame);
         }
 
         // Safe area to stop

@@ -39,7 +39,7 @@ class Map;
 class LocalMapping
 {
 public:
-    LocalMapping(Map* pMap);
+    LocalMapping(Map* pMap, KeyFrameDatabase* pKeyFrameDB);
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
 
@@ -89,6 +89,7 @@ protected:
 
     LoopClosing* mpLoopCloser;
     Tracking* mpTracker;
+    KeyFrameDatabase* mpKeyFrameDB;
 
     std::list<KeyFrame*> mlNewKeyFrames;
 

@@ -43,7 +43,7 @@ namespace ORB_SLAM
 
 Tracking::Tracking(ORBVocabulary* pVoc, FramePublisher *pFramePublisher, MapPublisher *pMapPublisher, Map *pMap, string strSettingPath):
     mState(NO_IMAGES_YET), mpORBVocabulary(pVoc), mpFramePublisher(pFramePublisher), mpMapPublisher(pMapPublisher), mpMap(pMap),
-    mnLastRelocFrameId(0), mbPublisherStopped(false), mbReseting(false), mbForceRelocalisation(false), mbMotionModel(false)
+    mnLastRelocFrameId(0), mbPublisherStopped(false), mbReseting(false), mbForceRelocalisation(false), mbMotionModel(false), mpLoopClosing(NULL)
 {
     // Load camera parameters from settings file
 
@@ -155,7 +155,7 @@ void Tracking::SetKeyFrameDatabase(KeyFrameDatabase *pKFDB)
     mpKeyFrameDB = pKFDB;
 }
 
-bool Tracking::Run(cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec)
+bool Tracking::Run(const cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec)
 {
     cv::Mat im;
 
@@ -280,9 +280,8 @@ bool Tracking::Run(cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec)
     if(!mCurrentFrame.mTcw.empty())
     {
         T_cw = mCurrentFrame.mTcw.clone();
-        return true;
     }
-    return false;
+    return mState==WORKING;
 }
 
 
@@ -809,6 +808,7 @@ void Tracking::UpdateReferenceKeyFrames()
 
 bool Tracking::Relocalisation()
 {
+    std::cout << "Relocalising" << std::endl;
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
 
@@ -1016,7 +1016,7 @@ void Tracking::Reset()
     // Reset Local Mapping
     mpLocalMapper->RequestReset();
     // Reset Loop Closing
-    mpLoopClosing->RequestReset();
+    if(mpLoopClosing) mpLoopClosing->RequestReset();
     // Clear BoW Database
     mpKeyFrameDB->clear();
     // Clear Map (this erase MapPoints and KeyFrames)

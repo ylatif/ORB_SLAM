@@ -63,7 +63,7 @@ public:
     void SetKeyFrameDatabase(KeyFrameDatabase* pKFDB);
 
     // This is the main function of the Tracking Thread
-    bool Run(cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec);
+    bool Run(const cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec);
 
     void ForceRelocalisation();
 
