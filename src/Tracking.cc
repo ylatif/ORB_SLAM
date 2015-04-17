@@ -1002,16 +1002,16 @@ void Tracking::Reset()
 
     // Wait until publishers are stopped
     //ros::Rate r(500);
-    while(1)
-    {
-        {
-            boost::mutex::scoped_lock lock(mMutexReset);
-            if(mbPublisherStopped)
-                break;
-        }
-        boost::this_thread::sleep(boost::posix_time::microseconds(2));
-        //r.sleep();
-    }
+//    while(1)
+//    {
+//        {
+//            boost::mutex::scoped_lock lock(mMutexReset);
+//            if(mbPublisherStopped)
+//                break;
+//        }
+//        boost::this_thread::sleep(boost::posix_time::microseconds(2));
+//        //r.sleep();
+//    }
 
     // Reset Local Mapping
     mpLocalMapper->RequestReset();
