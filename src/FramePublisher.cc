@@ -140,7 +140,7 @@ cv::Mat FramePublisher::DrawFrame()
 
 void FramePublisher::PublishFrame()
 {
-    //cv::Mat im = DrawFrame();
+    cv::Mat im = DrawFrame();
     //cv_bridge::CvImage rosImage;
     //rosImage.image = im.clone();
     //rosImage.header.stamp = ros::Time::now();
@@ -148,6 +148,9 @@ void FramePublisher::PublishFrame()
 
     //mImagePub.publish(rosImage.toImageMsg());
     //ros::spinOnce();
+	cv::imshow("Current Frame", im);
+	cv::waitKey(3);
+
 }
 
 void FramePublisher::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)

@@ -19,6 +19,7 @@
 */
 
 #include "Tracking.h"
+#include "ImageReader.h"
 
 #include<opencv2/opencv.hpp>
 
@@ -43,7 +44,7 @@ namespace ORB_SLAM
 
 Tracking::Tracking(ORBVocabulary* pVoc, FramePublisher *pFramePublisher, MapPublisher *pMapPublisher, Map *pMap, string strSettingPath):
     mState(NO_IMAGES_YET), mpORBVocabulary(pVoc), mpFramePublisher(pFramePublisher), mpMapPublisher(pMapPublisher), mpMap(pMap),
-    mnLastRelocFrameId(0), mbPublisherStopped(false), mbReseting(false), mbForceRelocalisation(false), mbMotionModel(false), mpLoopClosing(NULL)
+    mnLastRelocFrameId(0), mbPublisherStopped(false), mbReseting(false), mbDone(false),mbForceRelocalisation(false), mbMotionModel(false), mpLoopClosing(NULL)
 {
     // Load camera parameters from settings file
 
@@ -134,6 +135,11 @@ Tracking::Tracking(ORBVocabulary* pVoc, FramePublisher *pFramePublisher, MapPubl
     else
         cout << endl << "Motion Model: Disabled (not recommended, change settings UseMotionModel: 1)" << endl << endl;
 
+    std::string fileToRead = fSettings["ImageFile"];
+
+    msImageReader = new Utils::ImageReader(fileToRead.c_str());
+
+    std::cout<<"Reading From"<<fileToRead.c_str()<<std::endl;
 
     //tf::Transform tfT;
     //tfT.setIdentity();
@@ -155,9 +161,35 @@ void Tracking::SetKeyFrameDatabase(KeyFrameDatabase *pKFDB)
     mpKeyFrameDB = pKFDB;
 }
 
-bool Tracking::Run(const cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec)
+bool Tracking::Start()
+{
+	cv::Mat im;
+	double timestamp_sec=0;
+	cv::Mat T_cw;
+
+	while(msImageReader->getNextImage(im))
+	{
+		//boost::this_thread::sleep_for(boost::chrono::milliseconds(30));
+		Run(im, T_cw, timestamp_sec);
+		timestamp_sec++;
+
+	}
+	{
+		//boost::mutex::scoped_lock lock(mMutexReset);
+		mbDone = true;
+	}
+	return false;
+}
+
+bool Tracking::Done()
+{
+	return mbDone;
+}
+
+bool Tracking::Run(const cv::Mat& im_in, cv::Mat& T_cw, double timestamp_sec)
 {
     cv::Mat im;
+
 
     CV_Assert(im_in.channels()==3 || im_in.channels()==1);
 
@@ -1049,19 +1081,18 @@ void Tracking::CheckResetByPublishers()
 
     // Hold until reset is finished
     //ros::Rate r(500);
-    while(1)
+    while(!Done())
     {
         {
             boost::mutex::scoped_lock lock(mMutexReset);
             if(!mbReseting)
             {
                 mbPublisherStopped=false;
-                break;
+                //break;
             }
         }
-        boost::this_thread::sleep(boost::posix_time::microseconds(2));
-
-        //r.sleep();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(2));
+       //r.sleep();
     }
 }
 

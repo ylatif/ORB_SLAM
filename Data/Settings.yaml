@@ -41,3 +41,5 @@ ORBextractor.nScoreType: 1
 
 # Constant Velocity Motion Model (0 - disabled, 1 - enabled [recommended])
 UseMotionModel: 1
+
+ImageFile: /home/yasir/myRepos/ORB_SLAM_clean/Data/fileList.txt

@@ -174,6 +174,8 @@ void MapPublisher::PublishMapPoints(const vector<MapPoint*> &vpMPs, const vector
 //    mReferencePoints.header.stamp = ros::Time::now();
 //    publisher.publish(mPoints);
 //    publisher.publish(mReferencePoints);
+
+
 }
 
 void MapPublisher::PublishKeyFrames(const vector<KeyFrame*> &vpKFs)

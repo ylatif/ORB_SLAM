@@ -34,6 +34,7 @@
 #include"ORBextractor.h"
 #include "Initializer.h"
 #include "MapPublisher.h"
+#include "ImageReader.h"
 
 namespace ORB_SLAM
 {
@@ -64,6 +65,8 @@ public:
 
     // This is the main function of the Tracking Thread
     bool Run(const cv::Mat &im_in, cv::Mat &T_cw, double timestamp_sec);
+    bool Start();
+    //bool Run();
 
     void ForceRelocalisation();
 
@@ -82,6 +85,7 @@ public:
 
 
     void CheckResetByPublishers();
+    bool Done();
 
 
 protected:
@@ -106,6 +110,8 @@ protected:
 
     bool NeedNewKeyFrame();
     void CreateNewKeyFrame();
+
+
 
 
     //Other Thread Pointers
@@ -159,6 +165,7 @@ protected:
     //Reset
     bool mbPublisherStopped;
     bool mbReseting;
+    bool mbDone;
     boost::mutex mMutexReset;
 
     //Is relocalisation requested by an external thread? (loop closing)
@@ -171,8 +178,11 @@ protected:
     //Color order (true RGB, false BGR, ignored if grayscale)
     bool mbRGB;
 
+    Utils::ImageReader *msImageReader;
     // Transfor broadcaster (for visualization in rviz)
     //tf::TransformBroadcaster mTfBr;
+
+
 };
 
 } //namespace ORB_SLAM

@@ -28,8 +28,8 @@ ${CHOLMOD_INCLUDE_DIR}
 ${Boost_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} SHARED
-#src/main.cc
+#add_library(${PROJECT_NAME} SHARED
+add_executable(${PROJECT_NAME}
 src/Tracking.cc
 src/LocalMapping.cc
 src/LoopClosing.cc
@@ -47,6 +47,7 @@ src/Frame.cc
 src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
+src/main.cc
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -54,6 +55,7 @@ ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 ${Boost_LIBRARIES}
 cholmod
+boost_system
 ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_core.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_cholmod.so
